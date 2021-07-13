@@ -1,0 +1,25 @@
+{
+  "name": "wowbot",
+  "version": "1.0.0",
+  "description": "oh wow",
+  "main": "app.js",
+  "dependencies": {
+    "discord.js": "^12.5.3",
+    "dotenv": "^10.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/124san/wowbot.git"
+  },
+  "author": "124san",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/124san/wowbot/issues"
+  },
+  "homepage": "https://github.com/124san/wowbot#readme"
+}
