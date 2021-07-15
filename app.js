@@ -3,14 +3,12 @@ const Discord = require("discord.js")
 const token = process.env['TOKEN']
 const client = new Discord.Client()
 const prefix = process.env['PREFIX'] || '~'
-const htpdChannel = process.env['HTPD_CHANNEL'] || '587411617268891707'
 const htpdImage = process.env['HTPD_IMAGE_URL'] || 'https://i.imgflip.com/4kfa0i.png'
 const htpdID = process.env['HTPD_ID'] || '864433335882350612'
 
-var htpdChannels = ['587411617268891707']
-
 client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag}!`)
+  client.user.setActivity("peeping on ARKS Ship Bridge")
 })
 
 client.on('message', message => {
@@ -21,35 +19,18 @@ client.on('message', message => {
   if (command === 'htpd') {
     htpdMention(message)
   }
-  if (command === 'addc') {
-    channelID = args.shift();
-    if (!channelID) {
-      message.reply("Usage: "+prefix+"addc [Channel ID]")
-      return;
-    }
-    client.channels.fetch(channelID).then(channel => {
-      htpdChannels.push(channelID)
-      message.reply("Successfully added channel "+channel.name)
-    })
-  }
   if (command === 'joinhtpd') {
-    const role = message.guild.roles.cache.find(role => role.name === 'htpd')
+    const role = findHtpdRole(message)
     if (role){
       message.member.roles.add(role)
       message.reply("Success! You're now receiving pings about upcoming HTPD!")
     }
-    else {
-      message.reply("Your channel has no role called @htpd. Please add @htpd role to the server.")
-    }
   }
   if (command === 'leavehtpd') {
-    const role = message.guild.roles.cache.find(role => role.name === 'htpd')
+    const role = findHtpdRole(message)
     if (role){
       message.member.roles.remove(role)
       message.reply("Success! You will stop receiving pings of upcoming HTPD!")
-    }
-    else {
-      message.reply("Your channel has no role called @htpd. Please add @htpd role to the server.")
     }
   }
 });
@@ -57,8 +38,14 @@ client.login(token)
 
 function htpdMention(message) {
   if (!message.guild) return;
-  const htpdChannel = message.guild.channels.cache.find(c => c.name = "htpd")
-  if (!htpdChannel) return;
+  const htpdChannel = findHtpdChannel(message)
+  const htpdRole = findHtpdRole(message)
+  if (!htpdChannel) {
+    return;
+  };
+  if (!htpdRole) {
+    return;
+  }
   nextHour = getNextHour()
   const embed = new Discord.MessageEmbed()
   // Set the title of the field
@@ -72,13 +59,10 @@ function htpdMention(message) {
   +nextHour.toLocaleString('en-US', { timeZone: 'America/New_York' })+" in Eastern\n"
   +nextHour.toLocaleString('en-US', { timeZone: 'UTC' })+" in UTC\n"
   +nextHour.toLocaleString('en-US', { timeZone: 'Asia/Shanghai' })+" in UTC+8\n");
-  htpdChannels.forEach(id => {
-    client.channels.fetch(id).then(channel => {
-      channel.send("<@&" + htpdID + "> HTPD Gamers, wake up for HTPD!")
-      channel.send(embed)
-    }).catch(console.error);
+  htpdChannel.fetch().then(channel => {
+    channel.send("<@&" + htpdRole.id + "> HTPD Gamers, wake up for HTPD!")
+    channel.send(embed)
   })
-
   
 }
 
@@ -88,4 +72,22 @@ function getNextHour() {
   d.setMinutes(0);
   d.setSeconds(0);
   return d
+}
+
+function findHtpdRole(message) {
+  const htpdRole = message.guild.roles.cache.find(r => r.name === "htpd")
+  if (!htpdRole) {
+    message.reply("Your channel has no role called @htpd. Please add @htpd role to the server.")
+    return null;
+  }
+  return htpdRole
+}
+
+function findHtpdChannel(message) {
+  const htpdChannel = message.guild.channels.cache.find(c => c.name === "htpd")
+  if (!htpdChannel) {
+    message.reply("Please create a channel with name 'htpd' for me to send HTPD alert there.")
+    return null;
+  }
+  return htpdChannel
 }
